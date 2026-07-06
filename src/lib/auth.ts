@@ -8,7 +8,15 @@ if (process.env.NODE_ENV === 'production' && !process.env.BETTER_AUTH_SECRET) {
   throw new Error('BETTER_AUTH_SECRET must be set in production.');
 }
 
+const AUTH_URL = process.env.BETTER_AUTH_URL ?? 'http://localhost:3000';
+
 export const auth = betterAuth({
+  baseURL: {
+    allowedHosts: [new URL(AUTH_URL).host, 'berry-busy-*.vercel.app'],
+    fallback: AUTH_URL,
+    protocol: 'auto',
+  },
+  trustedOrigins: [AUTH_URL, 'https://berry-busy-*.vercel.app'],
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
   }),
