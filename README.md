@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BerryBusy
 
-## Getting Started
+A Trello-style kanban app for small teams — boards → lists → cards, with labels,
+assignees, comments, attachments, and activity logs.
 
-First, run the development server:
+Built with Next.js 16 (App Router), React 19, Prisma 7, Postgres (Neon), Better
+Auth, and Tailwind CSS v4 + shadcn/ui.
+
+> Status: early. The landing page and email/password auth are done; the board
+> app itself is still being built.
+
+## Prerequisites
+
+- Node.js 20+
+- [pnpm](https://pnpm.io) (this repo uses pnpm; don't use npm/yarn)
+- A Postgres database — a [Neon](https://neon.tech) pooled connection string works well
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+
+# configure environment
+cp .env.example .env
+# then fill in DATABASE_URL and BETTER_AUTH_SECRET in .env
+# (generate a secret: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))")
+
+# set up the database
+pnpm prisma migrate deploy   # apply migrations
+pnpm prisma generate         # generate the Prisma client
+
+pnpm dev                     # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm dev             # start the dev server
+pnpm build           # production build (runs prisma generate + tsc)
+pnpm start           # run the production build
+pnpm lint            # eslint
+pnpm exec tsc --noEmit   # typecheck
+pnpm prisma studio   # inspect the database
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment variables
 
-## Learn More
+See `.env.example`. Required:
 
-To learn more about Next.js, take a look at the following resources:
+- `DATABASE_URL` — Postgres/Neon connection string (use `sslmode=verify-full`)
+- `BETTER_AUTH_SECRET` — random secret for Better Auth (required in production)
+- `BETTER_AUTH_URL` — the app's base URL (e.g. `http://localhost:3000`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- The Prisma client is generated to `src/generated/prisma` (gitignored) — run
+  `pnpm prisma generate` after cloning or changing the schema.
+- More detail on architecture and conventions lives in `CLAUDE.md`.
