@@ -23,10 +23,10 @@ export function SiteHeader() {
         </nav>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" asChild>
-            <a href="/login">Sign in</a>
+            <Link href="/login">Sign in</Link>
           </Button>
           <Button size="sm" asChild>
-            <a href="/boards">Start a board</a>
+            <Link href="/boards">Start a board</Link>
           </Button>
         </div>
       </div>
