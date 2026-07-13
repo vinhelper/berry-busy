@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { Separator } from '@/components/ui/separator';
 import { Logo } from '@/components/logo';
 
@@ -15,9 +17,12 @@ export function SiteFooter() {
           <a href="#features" className="transition-colors hover:text-foreground">
             Features
           </a>
-          <a href="/login" className="transition-colors hover:text-foreground">
+          <Link
+            href="/login"
+            className="transition-colors hover:text-foreground"
+          >
             Sign in
-          </a>
+          </Link>
           <Separator orientation="vertical" className="h-4" />
           <span>© 2026 BerryBusy</span>
         </div>

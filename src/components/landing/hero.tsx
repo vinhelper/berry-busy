@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -18,13 +19,13 @@ export function Hero() {
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Button size="lg" asChild>
-            <a href="/boards">
+            <Link href="/boards">
               Create your first board
               <ArrowRight />
-            </a>
+            </Link>
           </Button>
           <Button size="lg" variant="outline" asChild>
-            <a href="/login">Get Started</a>
+            <Link href="/login">Get Started</Link>
           </Button>
         </div>
         <p className="mt-4 text-sm text-muted-foreground">
