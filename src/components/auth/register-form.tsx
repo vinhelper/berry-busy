@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 
 import { signUp } from '@/lib/auth-client';
 import { registerSchema, type RegisterInput } from '@/lib/validations/auth';
@@ -12,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export function RegisterForm() {
-  const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
   const {
     register,
@@ -35,7 +33,7 @@ export function RegisterForm() {
       return;
     }
 
-    router.replace('/boards');
+    window.location.assign('/boards');
   }
 
   return (
