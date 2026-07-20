@@ -28,14 +28,11 @@ export function LoginForm() {
     });
 
     if (error) {
-      setFormError(
-        error.message ?? 'Could not sign you in. Please try again.'
-      );
+      setFormError(error.message ?? 'Could not sign you in. Please try again.');
       return;
     }
 
-    router.push('/boards');
-    router.refresh();
+    router.replace('/boards');
   }
 
   return (

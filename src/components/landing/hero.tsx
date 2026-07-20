@@ -14,8 +14,8 @@ export function Hero() {
         </h1>
         <p className="mt-5 max-w-xl text-lg text-pretty text-muted-foreground">
           BerryBusy is a kanban board for small teams who would rather ship work
-          than manage the tool that tracks it. You don&apos;t have to sit through
-          a demo to understand.
+          than manage the tool that tracks it. You don&apos;t have to sit
+          through a demo to understand.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Button size="lg" asChild>

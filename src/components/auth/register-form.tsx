@@ -35,8 +35,7 @@ export function RegisterForm() {
       return;
     }
 
-    router.push('/boards');
-    router.refresh();
+    router.replace('/boards');
   }
 
   return (
