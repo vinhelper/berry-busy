@@ -41,9 +41,9 @@ export function Changelog() {
             Built in the open.
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            BerryBusy is early, and we would rather show you where it stands than
-            pretend it is finished. If it says shipped, it is in the app you are
-            looking at right now.
+            BerryBusy is early, and we would rather show you where it stands
+            than pretend it is finished. If it says shipped, it is in the app
+            you are looking at right now.
           </p>
           <p className="mt-4 text-muted-foreground">
             Something usually lands most weeks. When it breaks, that is usually

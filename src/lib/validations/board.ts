@@ -1,33 +1,57 @@
 import { z } from 'zod';
 
 export const createBoardSchema = z.object({
-  title: z.string().trim().min(1, 'Title is required').max(120, 'Title is too long'),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(120, 'Title is too long'),
   description: z.string().trim().max(500, 'Description is too long').optional(),
 });
 
 export const renameBoardSchema = z.object({
   id: z.string().min(1),
-  title: z.string().trim().min(1, 'Title is required').max(120, 'Title is too long'),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(120, 'Title is too long'),
 });
 
 export const createListSchema = z.object({
   boardId: z.string().min(1),
-  title: z.string().trim().min(1, 'Title is required').max(120, 'Title is too long'),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(120, 'Title is too long'),
 });
 
 export const renameListSchema = z.object({
   listId: z.string().min(1),
-  title: z.string().trim().min(1, 'Title is required').max(120, 'Title is too long'),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(120, 'Title is too long'),
 });
 
 export const createCardSchema = z.object({
   listId: z.string().min(1),
-  title: z.string().trim().min(1, 'Title is required').max(200, 'Title is too long'),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(200, 'Title is too long'),
 });
 
 export const renameCardSchema = z.object({
   cardId: z.string().min(1),
-  title: z.string().trim().min(1, 'Title is required').max(200, 'Title is too long'),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(200, 'Title is too long'),
 });
 
 export const reorderListSchema = z.object({

@@ -14,7 +14,10 @@ export function SiteFooter() {
           </p>
         </div>
         <div className="flex items-center gap-5 text-sm text-muted-foreground">
-          <a href="#features" className="transition-colors hover:text-foreground">
+          <a
+            href="#features"
+            className="transition-colors hover:text-foreground"
+          >
             Features
           </a>
           <Link
