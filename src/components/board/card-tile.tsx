@@ -1,29 +1,14 @@
 import { Clock, MessageSquare, Paperclip } from 'lucide-react';
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarGroup,
-  AvatarGroupCount,
-  AvatarImage,
-} from '@/components/ui/avatar';
+import { AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
+import { UserAvatar } from '@/components/user-avatar';
 import type { CardWithRelations } from '@/lib/boards/queries';
 
 const dueDateFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
 });
-
-function initials(name: string) {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
 
 export function CardTile({ card }: { card: CardWithRelations }) {
   const hasFooter =
@@ -76,14 +61,7 @@ export function CardTile({ card }: { card: CardWithRelations }) {
             {card.assignees.length > 0 && (
               <AvatarGroup className="-space-x-1.5">
                 {card.assignees.slice(0, 3).map(({ user }) => (
-                  <Avatar key={user.id} size="sm">
-                    {user.image && (
-                      <AvatarImage src={user.image} alt={user.name} />
-                    )}
-                    <AvatarFallback className="text-[10px] font-medium">
-                      {initials(user.name)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar key={user.id} user={user} size="sm" />
                 ))}
                 {card.assignees.length > 3 && (
                   <AvatarGroupCount className="size-6 text-[10px]">

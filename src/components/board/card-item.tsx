@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react';
 
 import { renameCard, deleteCard } from '@/lib/boards/actions';
 import { CardTile } from '@/components/board/card-tile';
+import { useInlineRename } from '@/components/board/use-inline-rename';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -26,39 +29,45 @@ import type { CardWithRelations } from '@/lib/boards/queries';
 
 export function CardItem({
   card,
-  canEdit,
+  listId,
 }: {
   card: CardWithRelations;
-  canEdit: boolean;
+  listId: string;
 }) {
-  const [editing, setEditing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const { editing, startEditing, cancelEditing, optimisticTitle, submit } =
+    useInlineRename(card.title, (title) =>
+      renameCard({ cardId: card.id, title })
+    );
 
-  if (!canEdit) {
-    return <CardTile card={card} />;
-  }
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: card.id,
+    data: { type: 'card', listId },
+    disabled: editing,
+  });
+
+  const style = {
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0 : undefined,
+  };
 
   if (editing) {
     return (
       <form
+        ref={setNodeRef}
+        style={style}
         onSubmit={(event) => {
           event.preventDefault();
-          const title = new FormData(event.currentTarget)
-            .get('title')
-            ?.toString()
-            .trim();
-          if (!title) {
-            setEditing(false);
-            return;
-          }
-          startTransition(async () => {
-            try {
-              await renameCard({ cardId: card.id, title });
-            } finally {
-              setEditing(false);
-            }
-          });
+          submit(new FormData(event.currentTarget).get('title')?.toString());
         }}
         className="flex flex-col gap-2 rounded-lg border bg-card p-2 shadow-sm ring-1 ring-foreground/5"
       >
@@ -66,22 +75,19 @@ export function CardItem({
           name="title"
           defaultValue={card.title}
           autoFocus
-          disabled={pending}
           onKeyDown={(event) => {
-            if (event.key === 'Escape') setEditing(false);
+            if (event.key === 'Escape') cancelEditing();
           }}
         />
         <div className="flex gap-2">
-          <Button type="submit" size="sm" disabled={pending}>
-            {pending && <Loader2 className="size-4 animate-spin" />}
+          <Button type="submit" size="sm">
             Save
           </Button>
           <Button
             type="button"
             size="sm"
             variant="ghost"
-            onClick={() => setEditing(false)}
-            disabled={pending}
+            onClick={cancelEditing}
           >
             Cancel
           </Button>
@@ -91,8 +97,14 @@ export function CardItem({
   }
 
   return (
-    <div className="group relative">
-      <CardTile card={card} />
+    <div ref={setNodeRef} style={style} className="group relative">
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab touch-none active:cursor-grabbing"
+      >
+        <CardTile card={{ ...card, title: optimisticTitle }} />
+      </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -105,7 +117,7 @@ export function CardItem({
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => setEditing(true)}>
+          <DropdownMenuItem onSelect={() => startEditing()}>
             <Pencil className="size-4" />
             Rename
           </DropdownMenuItem>

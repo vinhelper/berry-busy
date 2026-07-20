@@ -30,9 +30,24 @@ export const renameCardSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(200, 'Title is too long'),
 });
 
+export const reorderListSchema = z.object({
+  listId: z.string().min(1),
+  beforeId: z.string().min(1).nullable().optional(),
+  afterId: z.string().min(1).nullable().optional(),
+});
+
+export const moveCardSchema = z.object({
+  cardId: z.string().min(1),
+  toListId: z.string().min(1),
+  beforeId: z.string().min(1).nullable().optional(),
+  afterId: z.string().min(1).nullable().optional(),
+});
+
 export type CreateBoardInput = z.infer<typeof createBoardSchema>;
 export type RenameBoardInput = z.infer<typeof renameBoardSchema>;
 export type CreateListInput = z.infer<typeof createListSchema>;
 export type RenameListInput = z.infer<typeof renameListSchema>;
 export type CreateCardInput = z.infer<typeof createCardSchema>;
 export type RenameCardInput = z.infer<typeof renameCardSchema>;
+export type ReorderListInput = z.infer<typeof reorderListSchema>;
+export type MoveCardInput = z.infer<typeof moveCardSchema>;

@@ -55,4 +55,3 @@ See `.env.example`. Required:
 
 - The Prisma client is generated to `src/generated/prisma` (gitignored) — run
   `pnpm prisma generate` after cloning or changing the schema.
-- More detail on architecture and conventions lives in `CLAUDE.md`.
