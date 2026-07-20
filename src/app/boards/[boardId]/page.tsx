@@ -7,26 +7,10 @@ import { ArrowLeft } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { getBoardWithListsAndCards } from '@/lib/boards/queries';
 import { BoardHeader } from '@/components/board/board-header';
-import { BoardColumn } from '@/components/board/board-column';
-import { AddListForm } from '@/components/board/add-list-form';
+import { BoardCanvas } from '@/components/board/board-canvas';
 import { Badge } from '@/components/ui/badge';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarGroup,
-  AvatarGroupCount,
-  AvatarImage,
-} from '@/components/ui/avatar';
-
-function initials(name: string) {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
+import { AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/user-avatar';
 
 export async function generateMetadata({
   params,
@@ -93,14 +77,7 @@ export default async function BoardPage({
             {members.length > 0 && (
               <AvatarGroup>
                 {members.slice(0, 4).map((user) => (
-                  <Avatar key={user.id}>
-                    {user.image && (
-                      <AvatarImage src={user.image} alt={user.name} />
-                    )}
-                    <AvatarFallback className="font-medium">
-                      {initials(user.name)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar key={user.id} user={user} />
                 ))}
                 {members.length > 4 && (
                   <AvatarGroupCount className="size-6">
@@ -112,20 +89,11 @@ export default async function BoardPage({
           </div>
 
           {/* columns */}
-          <div className="flex items-start gap-3 overflow-x-auto bg-linear-to-b from-muted/20 to-transparent p-4">
-            {board.lists.map((list) => (
-              <BoardColumn key={list.id} list={list} canEdit={canEdit} />
-            ))}
-            {canEdit ? (
-              <AddListForm boardId={board.id} />
-            ) : (
-              board.lists.length === 0 && (
-                <p className="px-2 py-6 text-sm text-muted-foreground">
-                  This board is empty.
-                </p>
-              )
-            )}
-          </div>
+          <BoardCanvas
+            lists={board.lists}
+            boardId={board.id}
+            canEdit={canEdit}
+          />
         </div>
       </main>
     </div>

@@ -1,11 +1,19 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { MoreHorizontal, Pencil, Trash2, Loader2, Check, X } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Loader2,
+  Check,
+  X,
+} from 'lucide-react';
 
 import { renameList, deleteList } from '@/lib/boards/actions';
-import { CardItem } from '@/components/board/card-item';
 import { AddCardForm } from '@/components/board/add-card-form';
+import { useInlineRename } from '@/components/board/use-inline-rename';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -28,69 +36,64 @@ import type { ListWithCards } from '@/lib/boards/queries';
 export function BoardColumn({
   list,
   canEdit,
+  dragHandle,
+  highlighted,
+  children,
 }: {
   list: ListWithCards;
   canEdit: boolean;
+  dragHandle?: React.ReactNode;
+  highlighted?: boolean;
+  children: React.ReactNode;
 }) {
-  const [editing, setEditing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const { editing, startEditing, cancelEditing, optimisticTitle, submit } =
+    useInlineRename(list.title, (title) =>
+      renameList({ listId: list.id, title })
+    );
 
   return (
-    <div className="flex w-64 shrink-0 flex-col gap-2.5">
+    <div
+      className={cn(
+        'flex w-64 shrink-0 flex-col gap-2.5 rounded-xl p-1.5 transition-colors',
+        highlighted && 'bg-primary/10'
+      )}
+    >
       <div className="flex items-center justify-between gap-2 px-1">
         {editing ? (
           <form
             className="flex w-full items-center gap-1"
             onSubmit={(event) => {
               event.preventDefault();
-              const title = new FormData(event.currentTarget)
-                .get('title')
-                ?.toString()
-                .trim();
-              if (!title) {
-                setEditing(false);
-                return;
-              }
-              startTransition(async () => {
-                try {
-                  await renameList({ listId: list.id, title });
-                } finally {
-                  setEditing(false);
-                }
-              });
+              submit(
+                new FormData(event.currentTarget).get('title')?.toString()
+              );
             }}
           >
             <Input
               name="title"
               defaultValue={list.title}
               autoFocus
-              disabled={pending}
               className="h-8"
               onKeyDown={(event) => {
-                if (event.key === 'Escape') setEditing(false);
+                if (event.key === 'Escape') cancelEditing();
               }}
             />
             <Button
               type="submit"
               size="icon-sm"
               variant="ghost"
-              disabled={pending}
               aria-label="Save list name"
               className="text-primary hover:bg-primary hover:text-primary-foreground"
             >
-              {pending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Check className="size-4" />
-              )}
+              <Check className="size-4" />
             </Button>
             <Button
               type="button"
               size="icon-sm"
               variant="ghost"
-              onClick={() => setEditing(false)}
-              disabled={pending}
+              onClick={cancelEditing}
               aria-label="Cancel"
               className="text-muted-foreground hover:bg-destructive hover:text-white"
             >
@@ -99,9 +102,12 @@ export function BoardColumn({
           </form>
         ) : (
           <>
-            <span className="truncate text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              {list.title}
-            </span>
+            <div className="flex min-w-0 items-center gap-1">
+              {dragHandle}
+              <span className="truncate text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {optimisticTitle}
+              </span>
+            </div>
             <div className="flex shrink-0 items-center gap-1">
               <span className="text-xs text-muted-foreground">
                 {list.cards.length}
@@ -118,7 +124,7 @@ export function BoardColumn({
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={() => setEditing(true)}>
+                    <DropdownMenuItem onSelect={() => startEditing()}>
                       <Pencil className="size-4" />
                       Rename
                     </DropdownMenuItem>
@@ -137,11 +143,9 @@ export function BoardColumn({
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        {list.cards.map((card) => (
-          <CardItem key={card.id} card={card} canEdit={canEdit} />
-        ))}
-      </div>
+      {list.cards.length > 0 && (
+        <div className="flex flex-col gap-2">{children}</div>
+      )}
 
       {canEdit && <AddCardForm listId={list.id} />}
 

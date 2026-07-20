@@ -12,15 +12,19 @@ import {
   renameListSchema,
   createCardSchema,
   renameCardSchema,
+  reorderListSchema,
+  moveCardSchema,
   type CreateBoardInput,
   type RenameBoardInput,
   type CreateListInput,
   type RenameListInput,
   type CreateCardInput,
   type RenameCardInput,
+  type ReorderListInput,
+  type MoveCardInput,
 } from '@/lib/validations/board';
 import { requireBoardAccess } from '@/lib/boards/access';
-import { positionAtEnd } from '@/lib/boards/position';
+import { positionAtEnd, positionBetween } from '@/lib/boards/position';
 
 export async function createBoard(input: CreateBoardInput) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -100,6 +104,41 @@ export async function renameList(input: RenameListInput) {
   revalidatePath(`/boards/${list.boardId}`);
 }
 
+export async function reorderList(input: ReorderListInput) {
+  const data = reorderListSchema.parse(input);
+  const list = await prisma.list.findUnique({
+    where: { id: data.listId },
+    select: { boardId: true },
+  });
+  if (!list) throw new Error('NOT_FOUND');
+  await requireBoardAccess(list.boardId, { write: true });
+
+  const [before, after] = await Promise.all([
+    data.beforeId
+      ? prisma.list.findUnique({
+          where: { id: data.beforeId },
+          select: { position: true, boardId: true },
+        })
+      : null,
+    data.afterId
+      ? prisma.list.findUnique({
+          where: { id: data.afterId },
+          select: { position: true, boardId: true },
+        })
+      : null,
+  ]);
+
+  if (before && before.boardId !== list.boardId) throw new Error('BAD_REQUEST');
+  if (after && after.boardId !== list.boardId) throw new Error('BAD_REQUEST');
+
+  await prisma.list.update({
+    where: { id: data.listId },
+    data: { position: positionBetween(before?.position, after?.position) },
+  });
+
+  revalidatePath(`/boards/${list.boardId}`);
+}
+
 export async function deleteList(listId: string) {
   const list = await prisma.list.findUnique({
     where: { id: listId },
@@ -151,6 +190,54 @@ export async function renameCard(input: RenameCardInput) {
     data: { title: data.title },
   });
   revalidatePath(`/boards/${card.list.boardId}`);
+}
+
+export async function moveCard(input: MoveCardInput) {
+  const data = moveCardSchema.parse(input);
+
+  const card = await prisma.card.findUnique({
+    where: { id: data.cardId },
+    select: { list: { select: { boardId: true } } },
+  });
+  if (!card) throw new Error('NOT_FOUND');
+  const boardId = card.list.boardId;
+  await requireBoardAccess(boardId, { write: true });
+
+  const targetList = await prisma.list.findUnique({
+    where: { id: data.toListId },
+    select: { boardId: true },
+  });
+  if (!targetList || targetList.boardId !== boardId) {
+    throw new Error('BAD_REQUEST');
+  }
+
+  const [before, after] = await Promise.all([
+    data.beforeId
+      ? prisma.card.findUnique({
+          where: { id: data.beforeId },
+          select: { position: true, listId: true },
+        })
+      : null,
+    data.afterId
+      ? prisma.card.findUnique({
+          where: { id: data.afterId },
+          select: { position: true, listId: true },
+        })
+      : null,
+  ]);
+
+  if (before && before.listId !== data.toListId) throw new Error('BAD_REQUEST');
+  if (after && after.listId !== data.toListId) throw new Error('BAD_REQUEST');
+
+  await prisma.card.update({
+    where: { id: data.cardId },
+    data: {
+      listId: data.toListId,
+      position: positionBetween(before?.position, after?.position),
+    },
+  });
+
+  revalidatePath(`/boards/${boardId}`);
 }
 
 export async function deleteCard(cardId: string) {
