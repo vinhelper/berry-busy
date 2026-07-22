@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 
 import { renameList, deleteList } from '@/lib/boards/actions';
-import { AddCardForm } from '@/components/board/add-card-form';
+import { AddCardForm } from '@/components/board/card/add-card-form';
+import { useBoardContext } from '@/components/board/board-context';
 import { useInlineRename } from '@/components/board/use-inline-rename';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,17 +36,16 @@ import type { ListWithCards } from '@/lib/boards/queries';
 
 export function BoardColumn({
   list,
-  canEdit,
   dragHandle,
   highlighted,
   children,
 }: {
   list: ListWithCards;
-  canEdit: boolean;
   dragHandle?: React.ReactNode;
   highlighted?: boolean;
   children: React.ReactNode;
 }) {
+  const { canEdit } = useBoardContext();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const { editing, startEditing, cancelEditing, optimisticTitle, submit } =

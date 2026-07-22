@@ -12,6 +12,9 @@ import {
   renameListSchema,
   createCardSchema,
   renameCardSchema,
+  updateCardSchema,
+  createLabelSchema,
+  addCommentSchema,
   reorderListSchema,
   moveCardSchema,
   type CreateBoardInput,
@@ -20,6 +23,9 @@ import {
   type RenameListInput,
   type CreateCardInput,
   type RenameCardInput,
+  type UpdateCardInput,
+  type CreateLabelInput,
+  type AddCommentInput,
   type ReorderListInput,
   type MoveCardInput,
 } from '@/lib/validations/board';
@@ -190,6 +196,115 @@ export async function renameCard(input: RenameCardInput) {
     data: { title: data.title },
   });
   revalidatePath(`/boards/${card.list.boardId}`);
+}
+
+export async function updateCard(input: UpdateCardInput) {
+  const data = updateCardSchema.parse(input);
+  const card = await prisma.card.findUnique({
+    where: { id: data.cardId },
+    select: { list: { select: { boardId: true } } },
+  });
+  if (!card) throw new Error('NOT_FOUND');
+  const boardId = card.list.boardId;
+  await requireBoardAccess(boardId, { write: true });
+
+  let dueDate: Date | null = null;
+  if (data.dueDate) {
+    dueDate = new Date(data.dueDate);
+    if (Number.isNaN(dueDate.getTime())) throw new Error('BAD_REQUEST');
+  }
+
+  const [boardLabels, boardMembers] = await Promise.all([
+    prisma.label.findMany({
+      where: { boardId, id: { in: data.labelIds } },
+      select: { id: true },
+    }),
+    prisma.boardMember.findMany({
+      where: { boardId, userId: { in: data.assigneeIds } },
+      select: { userId: true },
+    }),
+  ]);
+  const labelIds = boardLabels.map((l) => l.id);
+  const assigneeIds = boardMembers.map((m) => m.userId);
+
+  await prisma.$transaction([
+    prisma.card.update({
+      where: { id: data.cardId },
+      data: {
+        title: data.title,
+        description: data.description || null,
+        dueDate,
+      },
+    }),
+    prisma.cardLabel.deleteMany({
+      where: { cardId: data.cardId, labelId: { notIn: labelIds } },
+    }),
+    prisma.cardLabel.createMany({
+      data: labelIds.map((labelId) => ({ cardId: data.cardId, labelId })),
+      skipDuplicates: true,
+    }),
+    prisma.cardAssignee.deleteMany({
+      where: { cardId: data.cardId, userId: { notIn: assigneeIds } },
+    }),
+    prisma.cardAssignee.createMany({
+      data: assigneeIds.map((userId) => ({ cardId: data.cardId, userId })),
+      skipDuplicates: true,
+    }),
+  ]);
+
+  revalidatePath(`/boards/${boardId}`);
+}
+
+export async function createLabel(input: CreateLabelInput) {
+  const data = createLabelSchema.parse(input);
+  await requireBoardAccess(data.boardId, { write: true });
+
+  const label = await prisma.label.create({
+    data: { boardId: data.boardId, name: data.name, color: data.color },
+    select: { id: true },
+  });
+
+  revalidatePath(`/boards/${data.boardId}`);
+  return label;
+}
+
+export async function addComment(input: AddCommentInput) {
+  const data = addCommentSchema.parse(input);
+  const card = await prisma.card.findUnique({
+    where: { id: data.cardId },
+    select: { list: { select: { boardId: true } } },
+  });
+  if (!card) throw new Error('NOT_FOUND');
+  const boardId = card.list.boardId;
+  const { userId } = await requireBoardAccess(boardId, { write: true });
+
+  const comment = await prisma.comment.create({
+    data: { cardId: data.cardId, userId, content: data.content },
+    include: { user: { select: { id: true, name: true, image: true } } },
+  });
+
+  revalidatePath(`/boards/${boardId}`);
+  return comment;
+}
+
+export async function deleteComment(commentId: string) {
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: {
+      userId: true,
+      card: { select: { list: { select: { boardId: true } } } },
+    },
+  });
+  if (!comment) throw new Error('NOT_FOUND');
+  const boardId = comment.card.list.boardId;
+  const { userId, role } = await requireBoardAccess(boardId, { write: true });
+
+  if (comment.userId !== userId && role !== 'OWNER') {
+    throw new Error('FORBIDDEN');
+  }
+
+  await prisma.comment.delete({ where: { id: commentId } });
+  revalidatePath(`/boards/${boardId}`);
 }
 
 export async function moveCard(input: MoveCardInput) {

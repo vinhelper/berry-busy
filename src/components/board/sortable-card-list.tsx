@@ -5,7 +5,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 
-import { CardItem } from '@/components/board/card-item';
+import { CardItem } from '@/components/board/card/card-item';
 import type { ListWithCards } from '@/lib/boards/queries';
 
 export function SortableCardList({ list }: { list: ListWithCards }) {

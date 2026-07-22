@@ -23,8 +23,13 @@ import { reorderList, moveCard } from '@/lib/boards/actions';
 import { useBoardStore } from '@/stores/board-store';
 import { BoardColumn } from '@/components/board/board-column';
 import { SortableColumn } from '@/components/board/sortable-column';
-import { CardTile } from '@/components/board/card-tile';
+import { CardTile } from '@/components/board/card/card-tile';
 import { AddListForm } from '@/components/board/add-list-form';
+import {
+  BoardProvider,
+  useBoardContext,
+  type BoardContextValue,
+} from '@/components/board/board-context';
 import type { ListWithCards } from '@/lib/boards/queries';
 
 const COLUMNS_CLASS =
@@ -48,29 +53,31 @@ export function BoardCanvas({
   canEdit,
 }: {
   lists: ListWithCards[];
-  boardId: string;
-  canEdit: boolean;
-}) {
-  if (!canEdit) {
-    return (
-      <div className={COLUMNS_CLASS}>
-        {lists.map((list) => (
-          <BoardColumn key={list.id} list={list} canEdit={false}>
-            {list.cards.map((card) => (
-              <CardTile key={card.id} card={card} />
-            ))}
-          </BoardColumn>
-        ))}
-        {lists.length === 0 && (
-          <p className="px-2 py-6 text-sm text-muted-foreground">
-            This board is empty.
-          </p>
-        )}
-      </div>
-    );
-  }
+} & BoardContextValue) {
+  const contextValue: BoardContextValue = { boardId, canEdit };
 
-  return <EditableCanvas serverLists={lists} boardId={boardId} />;
+  return (
+    <BoardProvider value={contextValue}>
+      {canEdit ? (
+        <EditableCanvas serverLists={lists} />
+      ) : (
+        <div className={COLUMNS_CLASS}>
+          {lists.map((list) => (
+            <BoardColumn key={list.id} list={list}>
+              {list.cards.map((card) => (
+                <CardTile key={card.id} card={card} />
+              ))}
+            </BoardColumn>
+          ))}
+          {lists.length === 0 && (
+            <p className="px-2 py-6 text-sm text-muted-foreground">
+              This board is empty.
+            </p>
+          )}
+        </div>
+      )}
+    </BoardProvider>
+  );
 }
 
 function findListId(lists: ListWithCards[], id: string) {
@@ -146,13 +153,8 @@ function neighbours(lists: ListWithCards[], listId: string, cardId: string) {
   };
 }
 
-function EditableCanvas({
-  serverLists,
-  boardId,
-}: {
-  serverLists: ListWithCards[];
-  boardId: string;
-}) {
+function EditableCanvas({ serverLists }: { serverLists: ListWithCards[] }) {
+  const { boardId } = useBoardContext();
   const override = useBoardStore((s) => s.override);
   const overrideBoardId = useBoardStore((s) => s.overrideBoardId);
   const setOverride = useBoardStore((s) => s.setOverride);
@@ -318,7 +320,6 @@ function EditableCanvas({
             <SortableColumn
               key={list.id}
               list={list}
-              canEdit
               highlighted={
                 activeDrag?.type === 'card' && overListId === list.id
               }
