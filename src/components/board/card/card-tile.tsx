@@ -1,14 +1,10 @@
-import { Clock, MessageSquare, Paperclip } from 'lucide-react';
+import { MessageSquare, Paperclip } from 'lucide-react';
 
 import { AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
+import { DueBadge } from '@/components/board/card/due-badge';
 import { UserAvatar } from '@/components/user-avatar';
 import type { CardWithRelations } from '@/lib/boards/queries';
-
-const dueDateFormatter = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
-  day: 'numeric',
-});
 
 export function CardTile({ card }: { card: CardWithRelations }) {
   const hasFooter =
@@ -38,12 +34,7 @@ export function CardTile({ card }: { card: CardWithRelations }) {
         {hasFooter && (
           <div className="flex items-center justify-between pt-0.5 text-muted-foreground">
             <div className="flex items-center gap-2.5 text-xs">
-              {card.dueDate && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="size-3.5" />
-                  {dueDateFormatter.format(card.dueDate)}
-                </span>
-              )}
+              {card.dueDate && <DueBadge dueDate={card.dueDate} />}
               {card._count.comments > 0 && (
                 <span className="inline-flex items-center gap-1">
                   <MessageSquare className="size-3.5" />

@@ -6,8 +6,10 @@ assignees, comments, attachments, and activity logs.
 Built with Next.js 16 (App Router), React 19, Prisma 7, Postgres (Neon), Better
 Auth, and Tailwind CSS v4 + shadcn/ui.
 
-> Status: early. The landing page and email/password auth are done; the board
-> app itself is still being built.
+> Status: in progress. The landing page, email/password auth, and the core
+> board app are working — boards, lists, and cards with drag-and-drop and a
+> card detail view (description, due dates, labels, assignees, comments).
+> Members/roles management and the activity log are still to come.
 
 ## Prerequisites
 

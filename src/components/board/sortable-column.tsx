@@ -10,11 +10,9 @@ import type { ListWithCards } from '@/lib/boards/queries';
 
 export function SortableColumn({
   list,
-  canEdit,
   highlighted,
 }: {
   list: ListWithCards;
-  canEdit: boolean;
   highlighted?: boolean;
 }) {
   const {
@@ -36,7 +34,6 @@ export function SortableColumn({
     <div ref={setNodeRef} style={style} className="shrink-0">
       <BoardColumn
         list={list}
-        canEdit={canEdit}
         highlighted={highlighted}
         dragHandle={
           <button

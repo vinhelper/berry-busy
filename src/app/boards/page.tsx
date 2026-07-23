@@ -6,8 +6,8 @@ import { auth } from '@/lib/auth';
 import { getBoardsForUser } from '@/lib/boards/queries';
 import { Logo } from '@/components/logo';
 import { SignOutButton } from '@/components/auth/sign-out-button';
-import { CreateBoardForm } from '@/components/board/create-board-form';
-import { BoardCard } from '@/components/board/board-card';
+import { CreateBoardForm } from '@/components/boards/create-board-form';
+import { BoardCard } from '@/components/boards/board-card';
 import { Badge } from '@/components/ui/badge';
 
 export const metadata: Metadata = {

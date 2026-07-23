@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Link from 'next/link';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react';
 
 import { renameCard, deleteCard } from '@/lib/boards/actions';
-import { CardTile } from '@/components/board/card-tile';
+import { CardTile } from '@/components/board/card/card-tile';
+import { useBoardContext } from '@/components/board/board-context';
 import { useInlineRename } from '@/components/board/use-inline-rename';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +38,7 @@ export function CardItem({
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const { boardId } = useBoardContext();
   const { editing, startEditing, cancelEditing, optimisticTitle, submit } =
     useInlineRename(card.title, (title) =>
       renameCard({ cardId: card.id, title })
@@ -103,7 +106,9 @@ export function CardItem({
         {...listeners}
         className="cursor-grab touch-none active:cursor-grabbing"
       >
-        <CardTile card={{ ...card, title: optimisticTitle }} />
+        <Link href={`/boards/${boardId}/cards/${card.id}`} className="block">
+          <CardTile card={{ ...card, title: optimisticTitle }} />
+        </Link>
       </div>
 
       <DropdownMenu>

@@ -5,7 +5,10 @@ import type { Metadata } from 'next';
 import { ArrowLeft } from 'lucide-react';
 
 import { auth } from '@/lib/auth';
-import { getBoardWithListsAndCards } from '@/lib/boards/queries';
+import {
+  getBoardWithListsAndCards,
+  resolveBoardRole,
+} from '@/lib/boards/queries';
 import { BoardHeader } from '@/components/board/board-header';
 import { BoardCanvas } from '@/components/board/board-canvas';
 import { Badge } from '@/components/ui/badge';
@@ -38,9 +41,7 @@ export default async function BoardPage({
   const board = await getBoardWithListsAndCards(boardId, session.user.id);
   if (!board) notFound();
 
-  const role =
-    board.members.find((member) => member.userId === session.user.id)?.role ??
-    (board.ownerId === session.user.id ? 'OWNER' : 'VIEWER');
+  const role = resolveBoardRole(board, session.user.id);
   const canEdit = role !== 'VIEWER';
 
   const cardCount = board.lists.reduce(
